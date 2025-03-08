@@ -1,0 +1,7 @@
+# Node modules ko ignore karo
+node_modules/
+npm-debug.log
+.env
+uploads/
+dist/
+coverage/
