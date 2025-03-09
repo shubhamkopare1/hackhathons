@@ -25,7 +25,7 @@ const Sidebar = ({ role }) => {
         className="md:hidden fixed top-4 left-4 z-50 bg-blue-600 p-2 rounded-full text-white text-2xl"
         onClick={toggleSidebar}
       >
-        {isOpen ? <FiX /> : <FiMenu />}
+         <FiMenu />
       </button>
     </div>
   );
