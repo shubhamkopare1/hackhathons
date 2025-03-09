@@ -71,7 +71,7 @@ const Register = () => {
       alert("Please upload a payment screenshot.");
       return;
     }
-
+/// shubham
     // ✅ Create FormData Object for File Upload
     const formData = new FormData();
     formData.append("teamName", form.teamName);

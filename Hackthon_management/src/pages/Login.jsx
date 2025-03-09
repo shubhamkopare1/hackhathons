@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Dashboard from "./Dashboard";
+import { login } from "../api/api";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "", role: "Admin" });
