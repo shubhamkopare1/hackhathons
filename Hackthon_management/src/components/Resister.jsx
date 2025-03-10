@@ -14,6 +14,7 @@ const Register = () => {
     paymentScreenshot: null,
   });
 
+  const [isRegistered, setIsRegistered] = useState(false); // Track registration status
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -74,8 +75,7 @@ const Register = () => {
 
     try {
       await registerUser(formData);
-      alert("You have successfully submitted the form. Within 1 hour, you will receive an email with your login credentials.");
-      navigate("/dashboard");
+      setIsRegistered(true); // Hide form and show message
     } catch (err) {
       alert("Registration Failed");
     }
@@ -83,60 +83,66 @@ const Register = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4 pt-18">
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-lg w-full max-w-lg">
-        <h2 className="text-2xl font-bold text-center text-blue-600 mb-4">Team Registration</h2>
-        
-        {/* Team Name & College Name */}
-        <input name="teamName" placeholder="Team Name" onChange={handleChange} className="w-full p-2 border rounded mb-3" required />
-        <input name="collegeName" placeholder="College Name" onChange={handleChange} className="w-full p-2 border rounded mb-3" required />
-
-        <h3 className="text-lg font-semibold mt-2 text-gray-700">Team Leader</h3>
-        <div className="grid grid-cols-1 gap-2">
-          <input name="leaderName" placeholder="Leader Name" onChange={handleChange} className="p-2 border rounded" required />
-          <input name="leaderEmail" type="email" placeholder="Leader Email" onChange={handleChange} className="p-2 border rounded" required />
-          <input name="leaderPhone" type="tel" placeholder="Leader Phone" onChange={handleChange} className="p-2 border rounded" required />
-          <select name="leaderGender" onChange={handleChange} className="p-2 border rounded" required>
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
+      {isRegistered ? (
+        <div className="bg-white p-6 rounded shadow-lg text-center w-full max-w-lg">
+          <h2 className="text-2xl font-bold text-blue-600 mb-4">Registration Successful</h2>
+          <p className="text-gray-700">
+            You have successfully submitted the form. Within 1 hour, you will receive an email with your login credentials.
+          </p>
         </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-lg w-full max-w-lg">
+          <h2 className="text-2xl font-bold text-center text-blue-600 mb-4">Team Registration</h2>
 
-        <h3 className="text-lg font-semibold mt-4 text-gray-700">Team Members</h3>
-        {form.members.map((_, index) => (
-          <div key={index} className="bg-gray-50 p-3 rounded-md mb-2 relative">
-            <input name={`member.${index}.name`} placeholder={`Member ${index + 1} Name`} onChange={handleChange} className="w-full p-2 border rounded mb-2" required={index < 1} />
-            <input name={`member.${index}.email`} type="email" placeholder={`Member ${index + 1} Email`} onChange={handleChange} className="w-full p-2 border rounded mb-2" />
-            <input name={`member.${index}.phone`} type="tel" placeholder={`Member ${index + 1} Phone`} onChange={handleChange} className="w-full p-2 border rounded mb-2" />
-            <select name={`member.${index}.gender`} onChange={handleChange} className="w-full p-2 border rounded mb-2">
+          <input name="teamName" placeholder="Team Name" onChange={handleChange} className="w-full p-2 border rounded mb-3" required />
+          <input name="collegeName" placeholder="College Name" onChange={handleChange} className="w-full p-2 border rounded mb-3" required />
+
+          <h3 className="text-lg font-semibold mt-2 text-gray-700">Team Leader</h3>
+          <div className="grid grid-cols-1 gap-2">
+            <input name="leaderName" placeholder="Leader Name" onChange={handleChange} className="p-2 border rounded" required />
+            <input name="leaderEmail" type="email" placeholder="Leader Email" onChange={handleChange} className="p-2 border rounded" required />
+            <input name="leaderPhone" type="tel" placeholder="Leader Phone" onChange={handleChange} className="p-2 border rounded" required />
+            <select name="leaderGender" onChange={handleChange} className="p-2 border rounded" required>
               <option value="">Select Gender</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
               <option value="Other">Other</option>
             </select>
-            {index > 0 && (
-              <button type="button" onClick={() => removeMember(index)} className="absolute top-1 right-1 bg-red-500 text-white px-2 py-1 rounded text-xs">✕</button>
-            )}
           </div>
-        ))}
 
-        {form.members.length < 4 && (
-          <button type="button" onClick={addMember} className="w-full bg-green-500 text-white p-2 rounded mt-2 text-sm font-bold">+ Add Member</button>
-        )}
+          <h3 className="text-lg font-semibold mt-4 text-gray-700">Team Members</h3>
+          {form.members.map((_, index) => (
+            <div key={index} className="bg-gray-50 p-3 rounded-md mb-2 relative">
+              <input name={`member.${index}.name`} placeholder={`Member ${index + 1} Name`} onChange={handleChange} className="w-full p-2 border rounded mb-2" required={index < 1} />
+              <input name={`member.${index}.email`} type="email" placeholder={`Member ${index + 1} Email`} onChange={handleChange} className="w-full p-2 border rounded mb-2" />
+              <input name={`member.${index}.phone`} type="tel" placeholder={`Member ${index + 1} Phone`} onChange={handleChange} className="w-full p-2 border rounded mb-2" />
+              <select name={`member.${index}.gender`} onChange={handleChange} className="w-full p-2 border rounded mb-2">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+              {index > 0 && (
+                <button type="button" onClick={() => removeMember(index)} className="absolute top-1 right-1 bg-red-500 text-white px-2 py-1 rounded text-xs">✕</button>
+              )}
+            </div>
+          ))}
 
-         {/* Permanent Barcode Display */}
-         <h3 className="text-lg font-semibold mt-4 text-gray-700">Scan & Pay - 80RS per head</h3>
-        <div className="flex justify-center mt-2">
-          <img src="/payment2.jpg" alt="Payment Barcode" className="h-32 w-auto border rounded shadow-sm" />
-        </div>
-      
-         {/* Payment Screenshot Upload */}
-        <h3 className="text-lg font-semibold mt-4 text-gray-700">Upload Payment Screenshot</h3>
-        <input type="file" accept="image/*" onChange={handleFileChange} className="w-full p-2 border rounded mb-3" required />
+          {form.members.length < 4 && (
+            <button type="button" onClick={addMember} className="w-full bg-green-500 text-white p-2 rounded mt-2 text-sm font-bold">+ Add Member</button>
+          )}
 
-        <button type="submit" className="bg-blue-600 text-white p-3 rounded w-full font-bold mt-2">Register</button>
-      </form>
+          <h3 className="text-lg font-semibold mt-4 text-gray-700">Scan & Pay - 80RS per head</h3>
+          <div className="flex justify-center mt-2">
+            <img src="/payment2.jpg" alt="Payment Barcode" className="h-32 w-auto border rounded shadow-sm" />
+          </div>
+
+          <h3 className="text-lg font-semibold mt-4 text-gray-700">Upload Payment Screenshot</h3>
+          <input type="file" accept="image/*" onChange={handleFileChange} className="w-full p-2 border rounded mb-3" required />
+
+          <button type="submit" className="bg-blue-600 text-white p-3 rounded w-full font-bold mt-2">Register</button>
+        </form>
+      )}
     </div>
   );
 };
