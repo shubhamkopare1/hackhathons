@@ -1,9 +1,11 @@
 const express = require("express");
 const multer = require("multer");
 const Team = require("../models/TeamModel");
+const User = require("../models/userModel");
 const path = require("path");
 const router = express.Router();
 const fs = require("fs");
+const jwt = require("jsonwebtoken");
 
 // ✅ Ensure "uploads/" folder exists
 const uploadDir = path.join(__dirname, "../uploads");
@@ -66,14 +68,63 @@ router.get("/getAllTeams", async (req, res) => {
 });
 
 // ✅ Get Single Team by ID API
-router.get("/getTeam/:id", async (req, res) => {
+ 
+
+router.get("/getTeam", async (req, res) => {
   try {
-    const team = await Team.findById(req.params.id);
-    if (!team) return res.status(404).json({ message: "Team not found" });
-    res.json(team);
+    // ✅ 1. Extract token from Authorization header
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Unauthorized: No token provided" });
+    }
+
+    const token = authHeader.split(" ")[1]; // Extract token after "Bearer "
+    console.log("Token:", token);
+
+    // ✅ 2. Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decoded,"ddd");
+    
+    const userEmail = decoded.email;
+      //  console.log(userId);
+       
+    // ✅ 3. Fetch user from DB
+    // const user = await User.findById(userId);
+    // if (!user) {
+    //   return res.status(404).json({ message: "User not found" });
+    // }
+
+    // ✅ 4. Fetch team data using user email
+    const team = await Team.findOne({ "leader.email": userEmail });
+    if (!team) {
+      return res.status(404).json({ message: "Team not found" });
+    }
+console.log(team);
+
+    res.json({ team, userEmail: userEmail });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching team", error });
+    res.status(500).json({ message: "Error fetching team", error: error.message });
   }
+});
+router.get("/logout", (req, res) => {
+  if (!req.session.user) {
+    return res.status(400).json({ message: "No active session found" });
+  }
+
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Could not log out" });
+    }
+
+    res.clearCookie("connect.sid", { path: "/" }); // ✅ Session cookie remove karo
+    return res.status(200).json({ message: "Logged out successfully" });
+  });
+});
+
+
+router.get("/test-session", (req, res) => {
+  res.json({ session: req.session });
 });
 
 module.exports = router;

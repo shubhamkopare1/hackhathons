@@ -2,22 +2,36 @@ const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
+const cookieParser = require("cookie-parser");
+
 // Generate JWT Token
 const generateToken = (user) => {
-  return jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+  return jwt.sign(
+    { userId: user._id, role: user.role ,email : user.email},
+    process.env.JWT_SECRET,  // ✅ Use environment variable
+    { expiresIn: "1h" }
+  );
 };
 
 // ✅ Register User
 exports.register = async (req, res) => {
   try {
     const { email, password, role } = req.body;
-    if (!["admin", "team"].includes(role)) return res.status(400).json({ message: "Invalid role" });
 
-    const user = new User({ email, password, role });
+    // 🔍 Validate role
+    if (!["admin", "team"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    // 🔑 Hash password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const user = new User({ email, password: hashedPassword, role });
     await user.save();
+
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error registering user", error });
+    res.status(500).json({ message: "Error registering user", error: error.message });
   }
 };
 
@@ -25,25 +39,37 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
 
     const token = generateToken(user);
 
-    // Store token in HTTP-Only Cookie
+    // ✅ Remove session storage if not needed
+    // req.session.token = token;
+    // req.session.role = user.role;
+
     res.cookie("authToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 3600000, // 1 hour
+      sameSite: "Strict",
     });
 
-    res.json({ message: "Login successful", role: user.role });
+    res.json({
+      message: "Login successful",
+      token,
+      role: user.role,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error logging in", error });
+    console.error("❌ Login Error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
