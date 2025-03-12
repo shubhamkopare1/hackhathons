@@ -1,32 +1,64 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FiMenu, FiX, FiHome, FiUsers, FiFileText, FiCreditCard, FiGrid } from "react-icons/fi";
+import {
+  FiUsers,
+  FiFileText,
+  FiCreditCard,
+  FiGrid,
+} from "react-icons/fi";
 
-const Sidebar = ({ role }) => {
+const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-
   const toggleSidebar = () => setIsOpen(!isOpen);
 
+  const roles = sessionStorage.getItem("role");
+  const handleLogout = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/team/logout", {
+        method: "GET",
+        credentials: "include", // Ensure cookies are included
+      });
+  
+      const data = await response.json();
+  console.log(data);
+  
+      if (response.ok) {
+        // Session clear karo
+        sessionStorage.clear();
+        alert("Logout successful!");
+  
+        // Redirect to home page
+        window.location.href = "/";
+      } else {
+        alert(data.message || "Logout failed");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+      alert("Something went wrong");
+    }
+  };
   return (
     <div className="flex">
       {/* Sidebar */}
-      <div className={`fixed top-0 left-0 h-full bg-blue-700 text-white w-64 transition-transform ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0 md:w-72 p-4 shadow-lg`}>
+      <div>
         <h2 className="text-2xl font-bold mb-6">Hackathon</h2>
         <nav className="space-y-4">
           <SidebarLink to="/dashboard" label="Dashboard" icon={<FiGrid />} />
-          {role === "teamLeader" && <SidebarLink to="/my-team" label="My Team" icon={<FiUsers />} />}
-          <SidebarLink to="/rules" label="Rules" icon={<FiFileText />} />
-          <SidebarLink to="/payment-receipt" label="Payment Receipt" icon={<FiCreditCard />} />
+          <SidebarLink to="/dashboard/my-team" label="My Team" icon={<FiUsers />} />
+          <SidebarLink to="/dashboard/rules" label="Rules" icon={<FiFileText />} />
+          <SidebarLink to="/dashboard/payment-receipt" label="Payment Receipt" icon={<FiCreditCard />} />
+          <SidebarLink
+    to="/"
+    label="LogOut"
+    icon={<FiCreditCard />}
+    onClick={handleLogout} // 🔥 Logout function call
+  />
+
+          {roles === "admin" && (
+            <SidebarLink to="/dashboard/getAllTeam" label="getAllTeam" icon={<FiCreditCard />} />
+          )}
         </nav>
       </div>
-
-      {/* Toggle Button */}
-      <button 
-        className="md:hidden fixed top-4 left-4 z-50 bg-blue-600 p-2 rounded-full text-white text-2xl"
-        onClick={toggleSidebar}
-      >
-        {isOpen ? <FiX /> : <FiMenu />}
-      </button>
     </div>
   );
 };
